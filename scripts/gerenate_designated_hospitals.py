@@ -53,15 +53,16 @@ def gerenate_table(hospitals, name):
     province_dir = '../docs/hospitals/{}'.format(name)
     try:
         hospitals[:][1][7]
-        table = '|  城市  |  区/县  |  名称  |  地址  |  电话  |\n|------|-------|------|------|------|\n'
-        string = '|  {}  |  {}  |  {}  |  {}  |  {}  \n'
+        table = '|  城市  |  区/县  |  名称  |  地址  |  电话  |  导航  |\n|------|-------|------|------|------|------|\n'
+        string = '|  {}  |  {}  |  {}  |  {}  |  {}  |  {}  \n'
     except IndexError:
-        table = '|  城市  |  区/县  |  名称  |  地址  |\n|------|-------|------|------|\n'
-        string = '|  {}  |  {}  |  {}  |  {}  \n'
+        table = '|  城市  |  区/县  |  名称  |  地址  |  导航  |\n|------|-------|------|------|------|\n'
+        string = '|  {}  |  {}  |  {}  |  {}  |  {}  \n'
     city = ''
     city_hospitals = []
     hospitals_len = len(hospitals)
     for index, hospital in enumerate(hospitals[:]):
+        hospital.append('[🧭](https://ditu.amap.com/search?query={})'.format(hospital[5]))
         table += string.format(*hospital[3:])
         if not city:
             city = hospital[3]
@@ -83,27 +84,31 @@ def gerenate_city(city_hospitals, province_dir, city):
     suburb = ''
     suburb_hospitals = []
     # 怎么杨移除xx族自治州？
-    if city.endswith(('市', '州')):
-        city = city[:-1]
-    city_name = ''.join(py.lazy_pinyin(city, style=py.Style.NORMAL))
+    if city.endswith(('新区')):
+        city_name = ''.join(py.lazy_pinyin(city, style=py.Style.NORMAL)[:-2])
+    elif city.endswith(('市', '州','区', '县')):
+        city_name = ''.join(py.lazy_pinyin(city, style=py.Style.NORMAL)[:-1])
+    else:
+        city_name = ''.join(py.lazy_pinyin(city, style=py.Style.NORMAL)[:-1])
     city_path = os.path.join(province_dir, '{}.md'.format(city_name))
-    if os.path.exists(city_path):
-        pass
-    if not os.path.isdir(province_dir):
-        os.makedirs(province_dir)
-    try:
-        hospitals[:][1][7]
-        city_table = '|  区/县  |  名称  |  地址  |  电话  |\n|------|-------|------|------|\n'
-        city_string = '|  {}  |  {}  |  {}  |  {}  \n'
-    except IndexError:
-        city_table = '|  区/县  |  名称  |  地址  |\n|------|-------|------|\n'
-        city_string = '|  {}  |  {}  |  {}  \n'
-    for city_hospital in city_hospitals:
-        city_table += city_string.format(*city_hospital[4:])
+    if not os.path.exists(city_path):
+        if not os.path.isdir(province_dir):
+            os.makedirs(province_dir)
+        try:
+            hospitals[:][1][7]
+            city_table = '|  区/县  |  名称  |  地址  |  电话  |  导航  |\n|------|-------|------|------|------|\n'
+            city_string = '|  {}  |  {}  |  {}  |  {}  |  {}  \n'
+        except IndexError:
+            city_table = '|  区/县  |  名称  |  地址  |  导航  |\n|------|-------|------|------|\n'
+            city_string = '|  {}  |  {}  |  {}  |  {}  \n'
+        for city_hospital in city_hospitals:
+            city_hospital.append('[🧭](https://ditu.amap.com/search?query={})'.format(city_hospital[5]))
+            city_table += city_string.format(*city_hospital[4:])
 
-    with open(city_path, 'w+', encoding='utf-8') as f:
-        f.write('{}\n{}\n'.format(gerenate_header(city_hospitals[0], 3), city_table))
+        with open(city_path, 'w+', encoding='utf-8') as f:
+            f.write('{}\n{}\n'.format(gerenate_header(city_hospitals[0], 3), city_table))
 
+   
 
 
 if __name__ == '__main__':
